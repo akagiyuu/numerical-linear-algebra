@@ -135,6 +135,22 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         Self { data }
     }
 
+    pub fn from_row_vectors(rows: [Vector<N>; M]) -> Self {
+        Matrix::new(rows.map(|row| row.data[0]))
+    }
+
+    pub fn to_row_vectors(self) -> [Vector<N>; M] {
+        self.data.map(|row| Matrix::new([row]))
+    }
+
+    pub fn from_column_vectors(columns: [Vector<M>; N]) -> Self {
+        Matrix::<N, M>::from_row_vectors(columns).transpose()
+    }
+
+    pub fn to_column_vectors(self) -> [Vector<M>; N] {
+        self.transpose().to_row_vectors()
+    }
+
     pub const ZEROS: Self = Matrix::new([[Complex64::ZERO; N]; M]);
 
     pub fn iter(&self) -> impl Iterator<Item = &Complex64> {
@@ -145,7 +161,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         self.data.iter_mut().flatten()
     }
 
-    pub fn transpose(&self) -> Matrix<N, M>{
+    pub fn transpose(&self) -> Matrix<N, M> {
         let mut result = Matrix::ZEROS;
 
         for i in 0..N {
