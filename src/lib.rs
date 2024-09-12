@@ -15,37 +15,7 @@ pub struct Matrix<const M: usize, const N: usize> {
     data: [[Complex64; N]; M],
 }
 
-impl<const M: usize, const N: usize> Matrix<M, N> {
-    #[inline]
-    pub const fn new(data: [[Complex64; N]; M]) -> Self {
-        Self { data }
-    }
-
-    pub const ZEROS: Self = Matrix::new([[Complex64::ZERO; N]; M]);
-
-    pub fn iter(&self) -> impl Iterator<Item = &Complex64> {
-        self.data.iter().flatten()
-    }
-
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Complex64> {
-        self.data.iter_mut().flatten()
-    }
-}
-
-impl<const M: usize> Matrix<M, M> {
-    pub fn diagonal(data: [Complex64; M]) -> Self {
-        let mut result = Matrix::ZEROS;
-        for i in 0..M {
-            result[[i, i]] = data[i];
-        }
-
-        result
-    }
-
-    pub fn identity() -> Self {
-        Self::diagonal([Complex64::ONE; M])
-    }
-}
+pub type Vector<const N: usize> = Matrix<1, N>;
 
 impl<const M: usize, const N: usize> Index<[usize; 2]> for Matrix<M, N> {
     type Output = Complex64;
@@ -159,7 +129,49 @@ impl<const M: usize, const N: usize> Display for Matrix<M, N> {
     }
 }
 
-pub type Vector<const N: usize> = Matrix<1, N>;
+impl<const M: usize, const N: usize> Matrix<M, N> {
+    #[inline]
+    pub const fn new(data: [[Complex64; N]; M]) -> Self {
+        Self { data }
+    }
+
+    pub const ZEROS: Self = Matrix::new([[Complex64::ZERO; N]; M]);
+
+    pub fn iter(&self) -> impl Iterator<Item = &Complex64> {
+        self.data.iter().flatten()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Complex64> {
+        self.data.iter_mut().flatten()
+    }
+
+    pub fn transpose(&self) -> Matrix<N, M>{
+        let mut result = Matrix::ZEROS;
+
+        for i in 0..N {
+            for j in 0..M {
+                result[[j, i]] = self[[i, j]];
+            }
+        }
+
+        result
+    }
+}
+
+impl<const M: usize> Matrix<M, M> {
+    pub fn diagonal(data: [Complex64; M]) -> Self {
+        let mut result = Matrix::ZEROS;
+        for i in 0..M {
+            result[[i, i]] = data[i];
+        }
+
+        result
+    }
+
+    pub fn identity() -> Self {
+        Self::diagonal([Complex64::ONE; M])
+    }
+}
 
 impl<const N: usize> Vector<N> {
     pub fn dot(&self, rhs: &Vector<N>) -> Complex64 {
