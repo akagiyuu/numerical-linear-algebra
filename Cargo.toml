@@ -1,0 +1,8 @@
+[package]
+name = "numerical-linear-algebra"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+num-complex = "0.4.6"
+tabled = "0.16.0"
