@@ -1,7 +1,16 @@
 [package]
 name = "numerical-linear-algebra"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
+license = "GPL-2.0"
+readme = "README.md"
+repository = "https://github.com/akagiyuu/numerical-linear-algebra"
+homepage = "https://github.com/akagiyuu/numerical-linear-algebra"
+description = """
+A library for linear algebra implemented using numerical methods.
+"""
+categories = ["mathematics"]
+keywords = ["linear algebra", "matrix", "numerical"]
 
 [dependencies]
 num-complex = "0.4.6"
