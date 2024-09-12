@@ -10,7 +10,7 @@ description = """
 A library for linear algebra implemented using numerical methods.
 """
 categories = ["mathematics"]
-keywords = ["linear algebra", "matrix", "numerical"]
+keywords = ["linear-algebra", "matrix", "numerical"]
 
 [dependencies]
 num-complex = "0.4.6"
