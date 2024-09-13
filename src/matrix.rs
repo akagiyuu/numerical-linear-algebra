@@ -241,6 +241,14 @@ impl<const M: usize> Matrix<M, M> {
     pub fn identity() -> Self {
         Self::diagonal([Complex64::ONE; M])
     }
+
+    pub fn determinant(&self) -> Complex64 {
+        let (row_echelon_matrix, _, row_swap_count) = self.clone().gaussian_elimination();
+        let sign = if row_swap_count % 2 == 0 { 1. } else { -1. };
+        sign * (0..M)
+            .map(|i| row_echelon_matrix[[i, i]])
+            .product::<Complex64>()
+    }
 }
 
 impl<const M: usize, const N: usize> Display for Matrix<M, N> {
