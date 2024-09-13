@@ -249,6 +249,36 @@ impl<const M: usize> Matrix<M, M> {
             .map(|i| row_echelon_matrix[[i, i]])
             .product::<Complex64>()
     }
+
+    pub fn gauss_jordan_elimination(self) -> (Matrix<M, M>, Matrix<M, M>) {
+        let epsilon = self.epsilon();
+        let (mut reduced_row_echelon_matrix, mut operation_matrix, _) = self.gaussian_elimination();
+
+        for i in (1..M).rev() {
+            if reduced_row_echelon_matrix[[i, i]].abs() <= epsilon {
+                continue;
+            }
+            for j in 0..i - 1 {
+                let scalar =
+                    -reduced_row_echelon_matrix[[j, i]] / reduced_row_echelon_matrix[[i, i]];
+
+                reduced_row_echelon_matrix.add_row_with_scalar(i, j, scalar);
+                operation_matrix.add_row_with_scalar(i, j, scalar);
+            }
+        }
+
+        for i in 0..M {
+            if reduced_row_echelon_matrix[[i, i]].abs() <= epsilon {
+                continue;
+            }
+
+            let scalar = 1. / reduced_row_echelon_matrix[[i, i]];
+            reduced_row_echelon_matrix.multiply_row_by_scalar(i, scalar);
+            operation_matrix.multiply_row_by_scalar(i, scalar);
+        }
+
+        (reduced_row_echelon_matrix, operation_matrix)
+    }
 }
 
 impl<const M: usize, const N: usize> Display for Matrix<M, N> {
