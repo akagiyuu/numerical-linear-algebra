@@ -147,6 +147,15 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         self.data.iter_mut().flatten()
     }
 
+    pub fn epsilon(&self) -> f64 {
+        self.iter()
+            .map(|x| x.abs())
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap()
+            * self.data.len().max(self.data[0].len()) as f64
+            * f64::EPSILON
+    }
+
     pub fn swap_row(&mut self, i: usize, j: usize) {
         self.data.swap(i, j);
     }
@@ -208,11 +217,12 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
     }
 
     pub fn rank(&self) -> usize {
+        let epsilon = self.epsilon();
         let (row_echelon_matrix, _, _) = self.clone().gaussian_elimination();
         row_echelon_matrix
             .data
             .iter()
-            .map(|row| row.iter().any(|&entry| entry != Complex64::ZERO))
+            .map(|row| row.iter().any(|&entry| entry.abs() >= epsilon))
             .filter(|&x| x)
             .count()
     }
