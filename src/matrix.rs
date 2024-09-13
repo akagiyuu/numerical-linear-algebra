@@ -115,6 +115,15 @@ impl<const M: usize, const N: usize> Mul<Matrix<M, N>> for Complex64 {
     }
 }
 
+impl<const M: usize, const N: usize> PartialEq for Matrix<M, N> {
+    fn eq(&self, other: &Self) -> bool {
+        let epsilon = self.epsilon();
+        self.iter()
+            .zip(other.iter())
+            .all(|(a, b)| (a - b).abs() < epsilon)
+    }
+}
+
 impl<const M: usize, const N: usize> Matrix<M, N> {
     #[inline]
     pub const fn new(data: [[Complex64; N]; M]) -> Self {
@@ -254,11 +263,11 @@ impl<const M: usize> Matrix<M, M> {
         let epsilon = self.epsilon();
         let (mut reduced_row_echelon_matrix, mut operation_matrix, _) = self.gaussian_elimination();
 
-        for i in (1..M).rev() {
+        for i in 1..M {
             if reduced_row_echelon_matrix[[i, i]].abs() <= epsilon {
                 continue;
             }
-            for j in 0..i - 1 {
+            for j in 0..=i - 1 {
                 let scalar =
                     -reduced_row_echelon_matrix[[j, i]] / reduced_row_echelon_matrix[[i, i]];
 
@@ -278,6 +287,15 @@ impl<const M: usize> Matrix<M, M> {
         }
 
         (reduced_row_echelon_matrix, operation_matrix)
+    }
+
+    pub fn inverse(self) -> Option<Matrix<M, M>> {
+        let (reduced_row_echelon_matrix, operation_matrix) = self.gauss_jordan_elimination();
+        if reduced_row_echelon_matrix == Matrix::<M, M>::identity() {
+            Some(operation_matrix)
+        } else {
+            None
+        }
     }
 }
 
