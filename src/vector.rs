@@ -2,7 +2,7 @@ use num_complex::{Complex64, ComplexFloat};
 
 use crate::Matrix;
 
-pub type Vector<const N: usize> = Matrix<1, N>;
+pub type Vector<const N: usize> = Matrix<N, 1>;
 
 impl<const N: usize> Vector<N> {
     pub fn dot(&self, rhs: &Vector<N>) -> Complex64 {

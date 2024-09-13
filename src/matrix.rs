@@ -130,20 +130,14 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         Self { data }
     }
 
-    pub fn from_row_vectors(rows: [Vector<N>; M]) -> Self {
-        Matrix::new(rows.map(|row| row.data[0]))
-    }
-
-    pub fn to_row_vectors(self) -> [Vector<N>; M] {
-        self.data.map(|row| Matrix::new([row]))
-    }
-
     pub fn from_column_vectors(columns: [Vector<M>; N]) -> Self {
-        Matrix::<N, M>::from_row_vectors(columns).transpose()
+        Matrix::<N, M>::new(columns.map(|column| column.transpose().data[0])).transpose()
     }
 
     pub fn to_column_vectors(self) -> [Vector<M>; N] {
-        self.transpose().to_row_vectors()
+        self.transpose()
+            .data
+            .map(|row| Matrix::new([row]).transpose())
     }
 
     pub const ZEROS: Self = Matrix::new([[Complex64::ZERO; N]; M]);
@@ -183,8 +177,8 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
     pub fn transpose(&self) -> Matrix<N, M> {
         let mut result = Matrix::ZEROS;
 
-        for i in 0..N {
-            for j in 0..M {
+        for i in 0..M {
+            for j in 0..N {
                 result[[j, i]] = self[[i, j]];
             }
         }
@@ -296,6 +290,47 @@ impl<const M: usize> Matrix<M, M> {
         } else {
             None
         }
+    }
+
+    pub fn qr_decomposition(self) -> (Matrix<M, M>, Matrix<M, M>) {
+        let q = Matrix::from_column_vectors(Vector::<M>::gram_schimidt_process(
+            self.clone().to_column_vectors(),
+        ));
+        let r = q.transpose() * self;
+
+        (q, r)
+    }
+
+    pub fn schur_form(self, iterations: usize) -> Matrix<M, M> {
+        let mut result = self;
+
+        for _ in 0..iterations {
+            let (q, r) = result.qr_decomposition();
+            result = r * q;
+        }
+
+        result
+    }
+
+    pub fn eigenvalues(&self, iterations: usize) -> [Complex64; M] {
+        let schur_form = self.clone().schur_form(iterations);
+        let mut eigenvalues: [Complex64; M] = (0..M)
+            .map(|i| schur_form[[i, i]])
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
+
+        eigenvalues.sort_by(|a, b| b.re().total_cmp(&a.abs()));
+
+        eigenvalues
+    }
+
+    pub fn eigenvectors(&self, iterations: usize) -> [Vector<M>; M] {
+        (0..iterations)
+            .fold(self.clone().qr_decomposition().0, |q, _| {
+                (self.clone() * q).qr_decomposition().0
+            })
+            .to_column_vectors()
     }
 }
 
