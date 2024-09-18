@@ -1,4 +1,5 @@
 use num_complex::{Complex64, ComplexFloat};
+use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::Matrix;
 
@@ -6,11 +7,16 @@ pub type Vector<const N: usize> = Matrix<N, 1>;
 
 impl<const N: usize> Vector<N> {
     pub fn dot(&self, rhs: &Vector<N>) -> Complex64 {
-        self.iter().zip(rhs.iter()).map(|(a, b)| a * b).sum()
+        self.iter()
+            .zip(rhs.iter())
+            .par_bridge()
+            .map(|(a, b)| a * b)
+            .sum()
     }
 
     pub fn norm(&self, p: u32) -> f64 {
         self.iter()
+            .par_bridge()
             .map(|x_i| x_i.abs().powi(p as i32))
             .sum::<f64>()
             .powf(1. / p as f64)
@@ -42,6 +48,7 @@ impl<const N: usize> Vector<N> {
 
         basis_vectors
             .iter_mut()
+            .par_bridge()
             .for_each(|vector| *vector = vector.clone().normalize());
 
         basis_vectors

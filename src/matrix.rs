@@ -5,6 +5,7 @@ use std::{
 };
 
 use num_complex::{Complex64, ComplexFloat};
+use rayon::iter::{IntoParallelRefMutIterator, ParallelBridge, ParallelIterator};
 use tabled::{
     builder::Builder,
     settings::{Margin, Style},
@@ -35,6 +36,7 @@ impl<const M: usize, const N: usize> AddAssign for Matrix<M, N> {
     fn add_assign(&mut self, rhs: Self) {
         self.iter_mut()
             .zip(rhs.iter())
+            .par_bridge()
             .for_each(|(left, right)| *left += right);
     }
 }
@@ -59,6 +61,7 @@ impl<const M: usize, const N: usize> SubAssign for Matrix<M, N> {
     fn sub_assign(&mut self, rhs: Self) {
         self.iter_mut()
             .zip(rhs.iter())
+            .par_bridge()
             .for_each(|(left, right)| *left -= right);
     }
 }
@@ -93,7 +96,7 @@ impl<const M: usize, const N: usize, const P: usize> Mul<Matrix<N, P>> for Matri
 
 impl<const M: usize, const N: usize> MulAssign<Complex64> for Matrix<M, N> {
     fn mul_assign(&mut self, rhs: Complex64) {
-        self.iter_mut().for_each(|x| *x *= rhs);
+        self.iter_mut().par_bridge().for_each(|x| *x *= rhs);
     }
 }
 
@@ -120,6 +123,7 @@ impl<const M: usize, const N: usize> PartialEq for Matrix<M, N> {
         let epsilon = self.epsilon();
         self.iter()
             .zip(other.iter())
+            .par_bridge()
             .all(|(a, b)| (a - b).abs() < epsilon)
     }
 }
@@ -152,6 +156,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
 
     pub fn epsilon(&self) -> f64 {
         self.iter()
+            .par_bridge()
             .map(|x| x.abs())
             .max_by(|a, b| a.total_cmp(b))
             .unwrap()
@@ -164,7 +169,9 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
     }
 
     pub fn multiply_row_by_scalar(&mut self, i: usize, scalar: Complex64) {
-        self.data[i].iter_mut().for_each(|entry| *entry *= scalar);
+        self.data[i]
+            .par_iter_mut()
+            .for_each(|entry| *entry *= scalar);
     }
 
     pub fn add_row_with_scalar(&mut self, i: usize, j: usize, scalar: Complex64) {
